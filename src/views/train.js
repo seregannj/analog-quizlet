@@ -1,12 +1,20 @@
-/* Урок: 3 режима — выбор варианта, карточки SM-2, примеры-пропуски */
-var ses=null;
-
 VIEWS.train=function(){
   const app=document.getElementById('app');
 
   /* ═════════ экран настройки ═════════ */
   function setup(){
     const S=Store.state;
+    if(!S.decks.length){
+      app.innerHTML=`
+      <div style="padding:8px 2px 14px"><div class="h1">Урок</div><div class="sub">нет словарей</div></div>
+      <div class="card empty">
+        <svg class="big-ico"><use href="#i-books"/></svg>
+        <b>Сначала создайте словарь</b>
+        Добавьте слова — и урок появится сам
+        <div class="mt"><button class="btn btn-green" onclick="location.hash='#/decks'">${icon('plus',18)} К словарям</button></div>
+      </div>`;
+      return;
+    }
     const due=Store.dueList(),fresh=Store.newList();
     let sub;
     if(due.length)sub='к повторению: '+due.length;
@@ -49,7 +57,9 @@ VIEWS.train=function(){
 
   /* ═════════ сборка сессии ═════════ */
   function start(){
-    const deckId=segVal('tDeck'),mode=segVal('tMode'),size=+segVal('tSize');
+    /* tDeck — это <select>, берём value напрямую (segVal тут не подходит) */
+    const deckId=document.getElementById('tDeck').value;
+    const mode=segVal('tMode'),size=+segVal('tSize');
     const today=U.todayISO();
     let overdue=[],fresh=[],all=[];
     Store.state.decks.forEach(d=>{
@@ -110,7 +120,7 @@ VIEWS.train=function(){
         <button class="speak" id="say">${icon('speaker',26)}</button>
       </div>
       <div id="reveal" class="hide" style="margin-top:-4px">
-        <div class="qword" style="color:var(--green-dark);font-size:32px">${U.esc(w.t)}</div>
+        <div class="qword" style="color:var(--green-dark);font-size:clamp(24px,7vw,32px)">${U.esc(w.t)}</div>
       </div>
       <button class="btn btn-blue btn-block" id="show" style="margin-top:12px">Показать перевод</button>
       <div id="grades" class="hide" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
@@ -245,7 +255,7 @@ VIEWS.train=function(){
     const msg=ses.forward?'Закрепили материал вперёд — отличная работа!':'Все запланированные слова повторены';
     app.innerHTML=`
     <div class="card center" style="padding:30px 20px">
-      <svg class="onb-illo owl-bounce" style="width:110px;height:110px"><use href="#i-owl"/></svg>
+      <svg class="onb-illo mascot-bounce" style="width:110px;height:110px"><use href="#i-tiger"/></svg>
       <div class="h1" style="color:var(--gold-text);margin-top:6px">Урок завершён!</div>
       <p class="sub">${msg}</p>
       <div class="stat-grid mt mb">

@@ -1,15 +1,24 @@
+/* Иконки и маскот — только вектор, без эмодзи */
 (function(){
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-owl" viewBox="0 0 120 120">
-    <path d="M20 68c-8 10-10 24-7 34 5-7 11-11 18-13zM100 68c8 10 10 24 7 34-5-7-11-11-18-13z" fill="#46A302"/>
-    <ellipse cx="60" cy="66" rx="40" ry="46" fill="#58CC02"/>
-    <ellipse cx="60" cy="42" rx="34" ry="30" fill="#58CC02"/>
-    <circle cx="44" cy="44" r="18" fill="#fff"/><circle cx="76" cy="44" r="18" fill="#fff"/>
-    <circle cx="44" cy="44" r="7.5" fill="#3C3C3C"/><circle cx="76" cy="44" r="7.5" fill="#3C3C3C"/>
-    <circle cx="46.5" cy="41.5" r="2.6" fill="#fff"/><circle cx="78.5" cy="41.5" r="2.6" fill="#fff"/>
-    <path d="M54 58l6 9 6-9z" fill="#FFC800"/>
-    <path d="M60 70c-8 0-14 6-14 13 0 9 7 16 14 16s14-7 14-16c0-7-6-13-14-13z" fill="#8EE000"/>
-    <ellipse cx="48" cy="112" rx="8" ry="4.5" fill="#FFC800"/><ellipse cx="72" cy="112" rx="8" ry="4.5" fill="#FFC800"/>
+  <symbol id="i-tiger" viewBox="0 0 120 120">
+    <circle cx="26" cy="28" r="17" fill="#F97316"/>
+    <circle cx="94" cy="28" r="17" fill="#F97316"/>
+    <circle cx="26" cy="28" r="9" fill="#FDBA74"/>
+    <circle cx="94" cy="28" r="9" fill="#FDBA74"/>
+    <ellipse cx="60" cy="66" rx="46" ry="47" fill="#FF9330"/>
+    <path d="M50 26l3 12M60 24v14M70 26l-3 12" stroke="#C2410C" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+    <path d="M15 56l12 4M14 70l13 1M105 56l-12 4M106 70l-13 1" stroke="#C2410C" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="60" cy="86" rx="27" ry="21" fill="#FFF7ED"/>
+    <circle cx="41" cy="54" r="11" fill="#fff"/>
+    <circle cx="79" cy="54" r="11" fill="#fff"/>
+    <circle cx="41.5" cy="55" r="5.2" fill="#1F2937"/>
+    <circle cx="78.5" cy="55" r="5.2" fill="#1F2937"/>
+    <circle cx="43.5" cy="52.8" r="2" fill="#fff"/>
+    <circle cx="80.5" cy="52.8" r="2" fill="#fff"/>
+    <path d="M53.5 76h13c1.6 0 2.4 1.9 1.3 3l-6.5 6.2c-.7.7-1.9.7-2.6 0L52.2 79c-1.1-1.1-.3-3 1.3-3z" fill="#9A3412"/>
+    <path d="M60 86v5" stroke="#9A3412" stroke-width="3" stroke-linecap="round"/>
+    <path d="M60 91c-3.5 4.5-9.5 4.5-12.5.8M60 91c3.5 4.5 9.5 4.5 12.5.8" stroke="#9A3412" stroke-width="3" stroke-linecap="round" fill="none"/>
   </symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M6 10.5V20h12v-9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20v-5h4v5" fill="currentColor"/></symbol>
   <symbol id="i-books" viewBox="0 0 24 24"><rect x="3.5" y="5" width="4.6" height="15" rx="1.4" stroke="currentColor" stroke-width="2.2" fill="none"/><rect x="9.7" y="4" width="4.6" height="16" rx="1.4" stroke="currentColor" stroke-width="2.2" fill="none"/><path d="M16.6 5.6l3.9 1-3.7 14.2-3.8-1z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/></symbol>
