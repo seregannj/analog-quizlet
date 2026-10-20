@@ -225,19 +225,20 @@ VIEWS.train=function(){
     return U.shuffle([right].concat(U.shuffle(pool).slice(0,3)));
   }
 
+  /* Оценка применяется сразу, XP/серия пишутся сразу (Store.recordAnswer) */
   function apply(it,q){
     const xp=Store.grade(it.deck.id,it.w.id,q);
+    Store.recordAnswer(xp);
     ses.xp+=xp;ses.res.push({ok:q>=2});refreshTop();
   }
   function next(){ses.i++;renderQ();}
   function quit(){
-    if(ses&&ses.res.length){Store.recordSession(ses.xp,ses.res.length);refreshTop();}
     ses=null;hideFeedback();Router.go('#/home');
   }
 
   /* ═════════ финиш ═════════ */
   function finish(){
-    Store.recordSession(ses.xp,ses.items.length);refreshTop();
+    refreshTop();
     const good=ses.res.filter(r=>r.ok).length;
     const acc=Math.round(100*good/ses.items.length);
     const prof=Store.state.profile;

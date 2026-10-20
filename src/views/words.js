@@ -67,7 +67,7 @@ VIEWS.words=function(deckId){
       <input class="inp" id="nW" placeholder="Слово" style="flex:1;min-width:110px">
       <input class="inp" id="nT" placeholder="Перевод" style="flex:1;min-width:110px">
       <input class="inp" id="nEx" placeholder="Пример (необязательно)" style="flex:2;min-width:140px">
-      <button class="btn btn-blue btn-sm" id="nSave">Dобавить</button>
+      <button class="btn btn-blue btn-sm" id="nSave">Добавить</button>
     </div>`;
   }
 

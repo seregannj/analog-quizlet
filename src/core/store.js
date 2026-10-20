@@ -31,30 +31,43 @@ window.Store = (function(){
   }
   function updateWord(deckId,id,patch){const d=deck(deckId);const w=d&&d.words.find(x=>x.id===id);if(w){Object.assign(w,patch);save();}}
   function deleteWord(deckId,id){const d=deck(deckId);if(d){d.words=d.words.filter(x=>x.id!==id);save();}}
-  /* Парсер списка: слово - перевод - пример
-     Поддерживает разделители: дефис, тире, таб (Excel), |, =, :, два пробела, /
-     Игнорирует нумерацию "1." и маркеры списка. */
+  /* Парсер списка: слово - перевод - пример.
+     Стратегия: находим САМЫЙ РАННИЙ разделитель в строке — он определяет формат,
+     и дальше строка режется ТОЛЬКО им. Благодаря этому «12:30» внутри перевода
+     или «mother-in-law» внутри слова не ломают разбор.
+     Поддерживаемые разделители: дефис/тире, таб (Excel), |, =, двоеточие, /
+     Нумерация "1." и маркеры списка игнорируются. */
   function parseBulk(text){
+    const SEPS=[
+      {re:/\s+[-–—]\s+/g,join:' - '},
+      {re:/\t/g,       join:' '},
+      {re:/\s*\|\s*/g, join:' | '},
+      {re:/\s+\/\s+/g, join:' / '},
+      {re:/\s*=\s*/g,  join:' = '},
+      {re:/:\s+/g,     join:': '},
+      {re:/\s{2,}/g,   join:' '}
+    ];
     const pairs=[],skipped=[];
     String(text).split(/\r?\n/).forEach(raw=>{
       let line=raw.trim();
       if(!line)return;
       line=line.replace(/^\d+[.)]\s+/,'').replace(/^\d+\s+[-–—]\s+/,'').replace(/^[-–—*•·]\s+/,'').trim();
       if(!line||/^[-–—_=*•·~|\s]+$/.test(line))return;
-      const seps=[/\s+[-–—]\s+/g,/\t/g,/\s*\|\s*/g,/\s+\/\s+/g,/\s*=\s*/g,/:\s+/g,/\s{2,}/g];
-      let marks=[];
-      seps.forEach(re=>{let m;re.lastIndex=0;while((m=re.exec(line)))marks.push({s:m.index,e:m.index+m[0].length});});
-      marks.sort((a,b)=>a.s-b.s);
-      marks=marks.filter((m,i,arr)=>i===0||m.s>=arr[i-1].e);
-      if(!marks.length){skipped.push(line);return;}
-      const parts=[];let prev=0;
-      marks.forEach(m=>{parts.push(line.slice(prev,m.s).trim());prev=m.e;});
-      parts.push(line.slice(prev).trim());
-      parts[0]=parts[0].replace(/\s+/g,' ');
-      if(parts[0]&&parts[1]){
-        const ex=parts.slice(2).filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
-        pairs.push([parts[0],parts[1].replace(/\t+/g,' ').replace(/\s+/g,' '),ex]);
-      }else skipped.push(line);
+      let best=null;
+      for(const s of SEPS){
+        s.re.lastIndex=0;
+        const m=s.re.exec(line);
+        if(m&&(!best||m.index<best.index))best={s:s,index:m.index};
+      }
+      if(!best){skipped.push(line);return;}
+      best.s.re.lastIndex=0;
+      const parts=line.split(best.s.re).map(x=>x.trim()).filter(x=>x!=='');
+      if(parts.length<2){skipped.push(line);return;}
+      const word=parts[0].replace(/\s+/g,' ');
+      const trans=parts[1].replace(/\s+/g,' ');
+      const ex=parts.slice(2).join(best.s.join).replace(/\s+/g,' ').trim();
+      if(word&&trans)pairs.push([word,trans,ex]);
+      else skipped.push(line);
     });
     return{pairs,skipped};
   }
@@ -80,14 +93,14 @@ window.Store = (function(){
   function dueList(){
     const t=U.todayISO(),out=[];
     st.decks.forEach(d=>d.words.forEach(w=>{
-      if(w.due&&w.due<=t)out.push({deck:d,w});
+      if(w.due&&w.due<=t)out.push({deck:d,w:w});
     }));
     out.sort((a,b)=>a.w.due<b.w.due?-1:1);
     return out;
   }
   function newList(){
     const out=[];
-    st.decks.forEach(d=>d.words.forEach(w=>{if(w.due==null)out.push({deck:d,w});}));
+    st.decks.forEach(d=>d.words.forEach(w=>{if(w.due==null)out.push({deck:d,w:w});}));
     return out;
   }
   function grade(deckId,wordId,q){
@@ -95,11 +108,14 @@ window.Store = (function(){
     if(!w)return 0;
     const r=SM2.grade(w,q,U.todayISO());save();return r.xp;
   }
-  function recordSession(xp,reviews){
+  /* Прогресс пишется после КАЖДОГО ответа, а не в конце сессии:
+     если пользователь уйдёт с урока через меню навигации,
+     XP, серия и статистика дня не потеряются. */
+  function recordAnswer(xp){
     const p=st.profile,t=U.todayISO();
-    p.xp+=xp;p.gems+=2;
+    p.xp+=xp;p.gems+=1;
     const day=p.days[t]||(p.days[t]={reviews:0,xp:0});
-    day.reviews+=reviews;day.xp+=xp;
+    day.reviews+=1;day.xp+=xp;
     if(p.lastDay!==t){
       p.streak=(p.lastDay&&U.diffDays(p.lastDay,t)===1)?p.streak+1:1;
       p.lastDay=t;
@@ -128,5 +144,5 @@ window.Store = (function(){
   load();
   return{get state(){return st;},save,createDeck,deck,deleteDeck,renameDeck,
     addWord,updateWord,deleteWord,parseBulk,bulkAdd,deckStats,dueList,newList,
-    grade,recordSession,todayStats,weekDays,resetProgress,wipe};
+    grade,recordAnswer,todayStats,weekDays,resetProgress,wipe};
 })();
