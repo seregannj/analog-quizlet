@@ -3,9 +3,9 @@ VIEWS.onboarding=function(){
   const slides=[
     {title:'Привет! Я Лекси.',html:`
       <div class="onb-body">
-        <svg class="onb-illo owl-bounce"><use href="#i-owl"/></svg>
+        <svg class="onb-illo mascot-bounce"><use href="#i-tiger"/></svg>
         <div class="onb-title">Привет! Я Лекси.</div>
-        <div class="onb-text">Я помогу выучить ваши слова так, чтобы они не выветрились из головы через неделю. Будем возвращаться к каждому слову ровно тогда, когда вы вот-вот его забудете.</div>
+        <div class="onb-text">Я тигр-наставник, и я помогу выучить ваши слова так, чтобы они не выветрились из головы через неделю. Будем возвращаться к каждому слову ровно тогда, когда вы вот-вот его забудете.</div>
       </div>`,btn:'Дальше'},
     {title:'Как это работает',html:`
       <div class="onb-body">

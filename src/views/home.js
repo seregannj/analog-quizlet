@@ -11,7 +11,7 @@ VIEWS.home=function(){
   if(totalWords===0){
     app.innerHTML=topRow()+`
     <div class="card center" style="padding:34px 20px">
-      <svg class="onb-illo owl-bounce" style="width:110px;height:110px"><use href="#i-owl"/></svg>
+      <svg class="onb-illo mascot-bounce" style="width:110px;height:110px;max-width:50vw"><use href="#i-tiger"/></svg>
       <div class="h1" style="margin-top:8px">Пусто и уютно</div>
       <p class="sub" style="margin:6px 0 18px">Создайте первый словарь и вставьте свои слова списком — Лекси сразу составит расписание повторений.</p>
       <div class="row wrap" style="justify-content:center">
@@ -32,7 +32,7 @@ VIEWS.home=function(){
 
   app.innerHTML=topRow()+`
   <div class="card card-hover" style="display:flex;gap:16px;align-items:center;cursor:pointer" onclick="location.hash='#/train'">
-    <svg style="width:86px;height:86px;flex:none" class="owl-bounce"><use href="#i-owl"/></svg>
+    <svg style="width:86px;height:86px;flex:none;max-width:26vw" class="mascot-bounce"><use href="#i-tiger"/></svg>
     <div style="flex:1;min-width:0">
       <div class="h2">${due.length>0?'Пора повторить':'Урок дня'}</div>
       <div class="sub">${sub}</div>
@@ -41,8 +41,8 @@ VIEWS.home=function(){
   </div>
   <div class="card">
     <div class="row mb"><span class="chip">${icon('target',14)} цель дня</span><span class="spacer"></span><span class="sub">${ts.reviews} / ${goal}</span></div>
-    <div class="row" style="gap:20px">
-      <div class="ring-wrap" style="flex:none">
+    <div class="row" style="gap:16px;flex-wrap:wrap">
+      <div class="ring-wrap" style="flex:none;margin:0 auto">
         <svg class="ring" width="110" height="110" viewBox="0 0 110 110">
           <circle class="track" cx="55" cy="55" r="${R}" fill="none" stroke-width="12"/>
           <circle class="val" cx="55" cy="55" r="${R}" fill="none" stroke-width="12"
@@ -50,7 +50,7 @@ VIEWS.home=function(){
         </svg>
         <div class="ring-num"><b>${pct}%</b><span>выполнено</span></div>
       </div>
-      <div style="flex:1;min-width:0">
+      <div style="flex:1;min-width:210px">
         <div class="sub" style="margin-bottom:8px">На этой неделе:</div>
         <div class="week">${week.map(d=>`
           <div class="d"><span class="dot ${d.n>0?'on':''} ${d.today?'today':''}">${d.n>0?d.n:''}</span>${d.name}</div>`).join('')}
