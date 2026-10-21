@@ -1,3 +1,8 @@
+/* Сессия урока объявлена ЯВНО: раньше переменная создавалась неявно при старте
+   урока, и глобальный обработчик клавиш внизу файла падал с ReferenceError
+   при любом нажатии клавиши до первого урока. */
+var ses=null;
+
 VIEWS.train=function(){
   const app=document.getElementById('app');
 
@@ -79,6 +84,7 @@ VIEWS.train=function(){
     }
     Store.state.settings.lessonSize=size;Store.save();
     ses={items:items,i:0,res:[],mode:mode,xp:0,forward:forward};
+    hideFeedback();
     drawLesson();renderQ();
   }
 
@@ -93,6 +99,21 @@ VIEWS.train=function(){
     document.getElementById('quit').onclick=quit;
   }
 
+  /* Поиск целого слова в примере: без учёта регистра, по границам слова, любой алфавит.
+     Старая версия строила RegExp без границ — «cat» находилась внутри «category». */
+  function findWordIn(ex,word){
+    if(!ex||!word)return -1;
+    const isL=ch=>/[\p{L}\p{N}]/u.test(ch);
+    const low=ex.toLowerCase(),t=word.toLowerCase();
+    let i=low.indexOf(t);
+    while(i>=0){
+      const b=i>0?low[i-1]:' ',a=i+t.length<low.length?low[i+t.length]:' ';
+      if(!isL(b)&&!isL(a))return i;
+      i=low.indexOf(t,i+1);
+    }
+    return -1;
+  }
+
   /* ═════════ один вопрос ═════════ */
   function renderQ(){
     if(!ses)return;
@@ -103,11 +124,18 @@ VIEWS.train=function(){
     document.getElementById('bar').style.width=(100*ses.i/total).toFixed(1)+'%';
     document.getElementById('cnt').textContent=(ses.i+1)+' / '+total;
 
-    let exUse=null;
+    /* пример с пропуском: ищем целое слово; если не нашли,
+       но в примере уже есть «___» — используем готовый пропуск */
+    let exUse=null,exFilled=null;
     if(w.ex){
-      const re=new RegExp(w.w.replace(/[.*+?^\${}()|[\]\\]/g,'\\$&'),'i');
-      if(re.test(w.ex))exUse=w.ex.replace(re,'________');
-      else if(w.ex.indexOf('___')>=0)exUse=w.ex.replace(/_+/,'________');
+      const idx=findWordIn(w.ex,w.w);
+      if(idx>=0){
+        exUse=w.ex.slice(0,idx)+'________'+w.ex.slice(idx+w.w.length);
+        exFilled=w.ex;
+      }else if(/_{3,}/.test(w.ex)){
+        exUse=w.ex.replace(/_{3,}/,'________');
+        exFilled=w.ex.replace(/_{3,}/,w.w);
+      }
     }
     const mode=(ses.mode==='examples'&&!exUse)?'choice':ses.mode;
     const body=document.getElementById('qBody');
@@ -124,10 +152,10 @@ VIEWS.train=function(){
       </div>
       <button class="btn btn-blue btn-block" id="show" style="margin-top:12px">Показать перевод</button>
       <div id="grades" class="hide" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
-        <button class="btn btn-red" data-q="0">Забыл</button>
-        <button class="btn btn-gray" data-q="1">Трудно</button>
-        <button class="btn btn-green" data-q="2">Знал</button>
-        <button class="btn btn-blue" data-q="3">Легко</button>
+        <button class="btn btn-red" data-q="0">1 · Забыл</button>
+        <button class="btn btn-gray" data-q="1">2 · Трудно</button>
+        <button class="btn btn-green" data-q="2">3 · Знал</button>
+        <button class="btn btn-blue" data-q="3">4 · Легко</button>
       </div>`;
       document.getElementById('say').onclick=()=>U.speak(w.w,deck.from);
       document.getElementById('show').onclick=()=>{
@@ -153,7 +181,7 @@ VIEWS.train=function(){
         <div class="qword">${U.esc(w.w)}</div>
         <button class="speak" id="say">${icon('speaker',26)}</button>
       </div>
-      <div class="opts" id="opts">
+      <div class="opts${opts.length<2?' one':''}" id="opts">
         ${opts.map((o,i)=>'<button class="tile" data-ok="'+(o===w.t?1:0)+'"><span class="num">'+(i+1)+'</span>'+U.esc(o)+'</button>').join('')}
       </div>
       <div class="row" style="margin-top:16px">
@@ -195,14 +223,15 @@ VIEWS.train=function(){
         <div class="qsub">выберите пропущенное слово</div>
         <button class="speak" id="say">${icon('speaker',26)}</button>
       </div>
-      <div class="opts" id="opts">
+      <div class="opts${opts.length<2?' one':''}" id="opts">
         ${opts.map((o,i)=>'<button class="tile" data-ok="'+(o===w.w?1:0)+'"><span class="num">'+(i+1)+'</span>'+U.esc(o)+'</button>').join('')}
       </div>
       <div class="row" style="margin-top:16px">
         <span class="spacer"></span>
         <button class="btn btn-gray" id="check" disabled>Проверить</button>
       </div>`;
-      document.getElementById('say').onclick=()=>U.speak(w.ex.replace('________',w.w),deck.from);
+      /* озвучиваем пример С пропущенным словом на своём месте */
+      document.getElementById('say').onclick=()=>U.speak(exFilled||w.ex,deck.from);
       let sel=null,locked=false;
       document.querySelectorAll('#opts .tile').forEach(t=>t.onclick=()=>{
         if(locked)return;
@@ -218,7 +247,7 @@ VIEWS.train=function(){
         document.querySelectorAll('#opts .tile').forEach(t=>{t.disabled=true;if(t.dataset.ok==='1')t.classList.add('correct');});
         if(!ok)sel.classList.add('wrong');
         showFeedback(ok,ok?'Верно!':'Ой!',(ok?'':'Пропущено слово: ')+w.w+' — '+w.t,next);
-      });
+      };
     }
   }
 
@@ -280,21 +309,34 @@ VIEWS.train=function(){
   setup();
 };
 
-/* горячие клавиши: 1–4 выбирают вариант, Enter — проверить/продолжить */
+/* горячие клавиши: 1–4 — выбор варианта или оценка карточки,
+   Enter / Пробел — проверить · показать перевод · продолжить.
+   Проверка полей ввода идёт ПЕРВОЙ, чтобы хоткеи не срабатывали при наборе текста. */
 document.addEventListener('keydown',e=>{
-  if(!ses)return;
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
   const fb=document.getElementById('fb');
-  if(e.key==='Enter'&&fb.classList.contains('show')){document.getElementById('fbBtn').click();return;}
+  if(fb&&fb.classList.contains('show')){
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();document.getElementById('fbBtn').click();}
+    return;
+  }
+  if(!ses)return;
   if(['1','2','3','4'].indexOf(e.key)>=0){
+    /* режим карточек: после раскрытия 1–4 оценивают ответ */
+    const grades=document.getElementById('grades');
+    if(grades&&!grades.classList.contains('hide')){
+      const b=grades.querySelector('[data-q="'+({'1':'0','2':'1','3':'2','4':'3'}[e.key])+'"]');
+      if(b){e.preventDefault();b.click();}
+      return;
+    }
     const tiles=document.querySelectorAll('#opts .tile');
-    if(tiles[+e.key-1])tiles[+e.key-1].click();
+    if(tiles[+e.key-1]){e.preventDefault();tiles[+e.key-1].click();}
     return;
   }
   if(e.key==='Enter'||e.key===' '){
     const c=document.getElementById('check');
     if(c&&!c.disabled){e.preventDefault();c.click();return;}
     const s=document.getElementById('show');
-    if(s){e.preventDefault();s.click();}
+    if(s&&!s.classList.contains('hide')){e.preventDefault();s.click();}
   }
 });

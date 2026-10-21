@@ -7,6 +7,9 @@ VIEWS.words=function(deckId){
   const TAG={done:['tag-done','выучено'],learn:['tag-learn','учится'],new:['tag-new','новое']};
 
   function draw(){
+    /* не теряем недопечатанный импорт и предпросмотр при перерисовке (поиск и т.п.) */
+    const b0=document.getElementById('bulk'),p0=document.getElementById('preview'),s0=document.getElementById('swap');
+    const bulkVal=b0?b0.value:'',prevHtml=p0?p0.innerHTML:'',swapOn=s0?s0.checked:false;
     const s=Store.deckStats(d);
     const words=d.words.filter(w=>{
       if(!query)return true;
@@ -48,7 +51,7 @@ VIEWS.words=function(deckId){
     </div>
     <div class="card">
       <div class="h2 mb">Импорт списком</div>
-      <p class="sub mb">По одному слову на строку: <b>слово - перевод</b>, пример — третьим полем. Понимаются также таб (Excel), «|», «=», «:», нумерация «1.»</p>
+      <p class="sub mb">По одному слову на строку: <b>слово - перевод</b>, пример — третьим полем. Понимаются также таб (Excel), «|», «=», «:», нумерация «1.». Пробелы вокруг дефиса не обязательны: «apple-яблоко» тоже сработает.</p>
       <textarea class="inp mono" id="bulk" placeholder="apple - яблоко - I eat an apple&#10;house - дом&#10;beautiful - красивый"></textarea>
       <label class="row" style="margin:10px 0;font-size:13.5px;font-weight:800;color:var(--muted)">
         <input type="checkbox" id="swap"> Наоборот: первое поле — это перевод
@@ -59,6 +62,10 @@ VIEWS.words=function(deckId){
       </div>
       <div id="preview" class="mt"></div>
     </div>`;
+    /* возвращаем сохранённое состояние импорта */
+    const bEl=document.getElementById('bulk');if(bEl)bEl.value=bulkVal;
+    const pEl=document.getElementById('preview');if(pEl)pEl.innerHTML=prevHtml;
+    const sEl=document.getElementById('swap');if(sEl)sEl.checked=swapOn;
     bind();
   }
 
@@ -87,6 +94,7 @@ VIEWS.words=function(deckId){
     app.querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>U.speak(b.dataset.say,d.from));
     app.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
       const w=d.words.find(x=>x.id===b.dataset.edit);
+      if(!w)return;
       const a=prompt('Слово:',w.w);if(a===null)return;
       const t=prompt('Перевод:',w.t);if(t===null)return;
       const ex=prompt('Пример (можно оставить пустым):',w.ex||'');if(ex===null)return;
@@ -94,6 +102,7 @@ VIEWS.words=function(deckId){
     });
     app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
       const w=d.words.find(x=>x.id===b.dataset.del);
+      if(!w)return;
       if(confirm('Удалить «'+w.w+'»?')){Store.deleteWord(d.id,w.id);draw();refreshTop();}
     });
   }

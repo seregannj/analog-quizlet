@@ -8,11 +8,19 @@ window.Store = (function(){
     decks:[]
   };}
   function load(){
-    try{const raw=localStorage.getItem(KEY); if(raw){const d=JSON.parse(raw); st=Object.assign(defaults(),d);
-      st.settings=Object.assign(defaults().settings,d.settings||{});
-      st.profile=Object.assign(defaults().profile,d.profile||{});
-      st.profile.days=st.profile.days||{};
-      return;}}catch(e){}
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(raw){const d=JSON.parse(raw); st=Object.assign(defaults(),d);
+        st.settings=Object.assign(defaults().settings,d.settings||{});
+        st.profile=Object.assign(defaults().profile,d.profile||{});
+        st.profile.days=st.profile.days||{};
+        return;}
+    }catch(e){
+      /* Битые данные больше не стираем молча: сохраняем копию в резервный ключ,
+         чтобы при желании можно было вытащить слова вручную. */
+      try{const raw=localStorage.getItem(KEY);if(raw)localStorage.setItem(KEY+'_corrupt',raw);}catch(_){}
+      console.warn('Не удалось прочитать сохранённые данные — создан новый профиль. Копия старых: ключ '+KEY+'_corrupt',e);
+    }
     st=defaults();
   }
   function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){console.warn('save fail',e);}}
@@ -35,7 +43,8 @@ window.Store = (function(){
      Стратегия: находим САМЫЙ РАННИЙ разделитель в строке — он определяет формат,
      и дальше строка режется ТОЛЬКО им. Благодаря этому «12:30» внутри перевода
      или «mother-in-law» внутри слова не ломают разбор.
-     Поддерживаемые разделители: дефис/тире, таб (Excel), |, =, двоеточие, /
+     Поддерживаемые разделители: дефис/тире (пробелы вокруг НЕ обязательны),
+     таб (Excel), |, =, двоеточие, два пробела.
      Нумерация "1." и маркеры списка игнорируются. */
   function parseBulk(text){
     const SEPS=[
@@ -59,7 +68,17 @@ window.Store = (function(){
         const m=s.re.exec(line);
         if(m&&(!best||m.index<best.index))best={s:s,index:m.index};
       }
-      if(!best){skipped.push(line);return;}
+      if(!best){
+        /* Мягкий фолбэк: дефис/тире БЕЗ пробелов («apple-яблоко»),
+           «house-дом-The house is big». Срабатывает только если строгий
+           разделитель не нашёлся вообще, поэтому «mother-in-law - свекровь»
+           по-прежнему разбирается строго и не рвётся по внутренним дефисам. */
+        const loose=line.split(/[-–—]/).map(x=>x.trim());
+        if(loose.length>=2&&loose[0]&&loose[1]){
+          pairs.push([loose[0].replace(/\s+/g,' '),loose[1].replace(/\s+/g,' '),loose.slice(2).join(' - ').replace(/\s+/g,' ')]);
+        }else skipped.push(line);
+        return;
+      }
       best.s.re.lastIndex=0;
       const parts=line.split(best.s.re).map(x=>x.trim()).filter(x=>x!=='');
       if(parts.length<2){skipped.push(line);return;}

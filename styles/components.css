@@ -135,3 +135,20 @@ textarea.inp.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
 .empty b{color:var(--ink);font-size:17px;font-weight:900;display:block;margin-bottom:4px}
 .mascot-bounce{animation:bounce 1.8s infinite}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+/* ═════════ Полировка (fix-коммит) ═════════ */
+/* без синей вспышки при тапе на мобилках и без выделения текста при быстрых кликах */
+button,.tile,.seg button,.tabbar button{-webkit-tap-highlight-color:transparent;user-select:none}
+/* видимый фокус с клавиатуры (доступность) */
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+/* на десктопе плашка результата — компактная карточка по центру, а не во всю ширину */
+@media(min-width:960px){
+  .feedback{left:50%;right:auto;bottom:22px;width:min(640px,calc(100vw - 48px));transform:translate(-50%,150%);border:2px solid var(--line);border-top-width:2px;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+  .feedback.show{transform:translate(-50%,0)}
+  .toast{bottom:110px}
+}
+/* уважение к системной настройке «меньше анимаций» */
+@media(prefers-reduced-motion:reduce){
+  .mascot-bounce{animation:none}
+  .prog>i,.ring .val,.tile,.btn{transition:none}
+}
